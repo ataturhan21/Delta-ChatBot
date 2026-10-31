@@ -1,100 +1,44 @@
----
-
-<div align="center">
-
-[![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
-[![Poetry](https://img.shields.io/badge/packaging-poetry-cyan.svg)](https://python-poetry.org/)
-[![GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-
-</div>
-
-<hr>
-
 # Delta ChatBot
 
-This is a chatbot that answers questions based on uploaded documents.
+A Streamlit application for asking questions about uploaded PDF and plain-text documents. It combines document loading, text chunking, embeddings, Chroma retrieval, and a conversational LangChain chain.
 
-[WebApp Link](https://delta-chat-bot.streamlit.app/)
+## Start locally
 
+The original project uses Python 3.10.10 and Poetry 1.4.0. Dependencies are recorded in [`pyproject.toml`](pyproject.toml) and `poetry.lock`.
 
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-
-
-## Prerequisites
-
-Before setting up the project, ensure that you have the following prerequisites installed on your machine:
-
-- Python (version 3.10.10):
-(https://www.python.org/downloads/)
-- Poetry (version 1.4.0):
-(https://python-poetry.org/docs/#installation)
-
-
-## Installation
-
-1. Clone the project repository:
-
-```
-git clone https://github.com/olympian-21/Delta-Chatbot.git
+```bash
+git clone https://github.com/ataturhan21/Delta-ChatBot.git
+cd Delta-ChatBot
+poetry install --no-root
+poetry run streamlit run "delta-chatbot/app.py"
 ```
 
-2. Navigate to the project directory:
+Run from the repository root so that `static/` assets resolve. On Windows, [`start.bat`](start.bat) sets the working directory for you. The application is run directly from its source directory; `--no-root` installs its dependencies without packaging that directory.
 
-```
-cd delta-chatbot
-```
+## Use the application
 
-3. Install project dependencies using Poetry:
+1. Choose an OpenAI or Hugging Face model in the sidebar.
+2. Enter the matching provider credential in the masked API-key field.
+3. Upload PDF or UTF-8 TXT files. The uploader accepts the formats handled by the document loader.
+4. Ask questions in the chat and expand the source-document panel to inspect retrieved passages.
 
-```
-poetry install
-```
+Each upload is written to an isolated temporary directory while it is parsed, then the temporary files are removed. Text is split into chunks of 256 characters with an overlap of 32 before retrieval.
 
-This command will create a virtual environment and install all the necessary dependencies specified in the `pyproject.toml` file.
+Embedding and language-model calls use the selected external provider. The original model list and API integrations are preserved; provider access and compatibility need verification before deployment. The application uses process-level provider settings and is intended for a local, single-user session.
 
+## Project map
 
-## Usage
+| Path | Purpose |
+| --- | --- |
+| [`delta-chatbot/app.py`](delta-chatbot/app.py) | Upload processing, retrieval, model selection, and chat UI |
+| [`delta-chatbot/modules/utils.py`](delta-chatbot/modules/utils.py) | Page configuration and shared styling |
+| [`static/`](static/) | Background images and CSS |
+| [`pyproject.toml`](pyproject.toml) | Original dependency constraints |
 
-1. Activate the virtual environment created by Poetry:
+## Development
 
-```
-poetry shell
-```
-
-2. Run the project:
-
-```
-streamlit run "delta-chatbot/app.py"
-```
-
-## Contributing
-
-If you would like to contribute to this project, follow the guidelines below:
-
-1. Fork the repository and clone it locally.
-
-2. Create a new branch for your feature or bug fix:
-   ```
-   git checkout -b feature/your-feature
-   ```
-
-3. Make your changes and commit them with descriptive commit messages.
-
-4. Push your changes to your forked repository:
-   ```
-   git push origin feature/your-feature
-   ```
-
-5. Open a pull request in the original repository, describing your changes in detail.
+Keep credentials outside version control. When changing the upload pipeline, check valid PDFs and text files, unsupported extensions, duplicate upload names, and temporary-file cleanup. A live model response also depends on provider credentials and service availability.
 
 ## License
 
-GPL v3
-
----
+[GNU General Public License v3.0](LICENSE).

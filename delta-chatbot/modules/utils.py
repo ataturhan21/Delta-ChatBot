@@ -36,8 +36,8 @@ def set_page_config():
         layout="wide",
         initial_sidebar_state="expanded",
         menu_items={
-            "Get Help": "https://github.com/delta-chatbot",
-            "Report a bug": "https://github.com/delta-chatbot",
+            "Get Help": "https://github.com/ataturhan21/Delta-ChatBot",
+            "Report a bug": "https://github.com/ataturhan21/Delta-ChatBot",
             "About": "This is a chatbot that answers questions based on uploaded documents.",
         },
     )
@@ -46,4 +46,3 @@ def set_page_config():
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    st.markdown(style, unsafe_allow_html=True)

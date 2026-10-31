@@ -8,7 +8,7 @@ import streamlit as st
 from langchain import HuggingFaceHub
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chat_models import ChatOpenAI
-from langchain.document_loaders import Docx2txtLoader, PyPDFLoader, TextLoader
+from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.embeddings import HuggingFaceHubEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.memory import ConversationBufferMemory
@@ -172,38 +172,32 @@ def create_retrieval_qa(
 
 
 def prepare_documents(uploaded_files):
-    """
-    Prepare and process documents from a list of uploaded files.
-
-    Parameters:
-        uploaded_files (list): A list of uploaded files to be processed.
-
-    Returns:
-        list: A list of text chunks obtained from the uploaded files.
-    """
-    temp_files = []
-    temp_dir = tempfile.TemporaryDirectory()
-    for uploaded_file in uploaded_files:
-        temp_file_path = os.path.join(temp_dir.name, uploaded_file.name)
-        with open(temp_file_path, "wb") as temp_file:
-            temp_file.write(uploaded_file.read())
-            temp_files.append(temp_file_path)
-
+    """Load supported uploads and remove temporary files after parsing."""
     documents = []
-    for temp_file in temp_files:
-        if temp_file.endswith(".pdf"):
-            loader = PyPDFLoader(temp_file)
-        elif temp_file.endswith(".doc") or temp_file.endswith(".docx"):
-            loader = Docx2txtLoader(temp_file)
-        elif temp_file.endswith(".txt"):
-            loader = TextLoader(temp_file)
-        documents.extend(loader.load())
+    loaders = {".pdf": PyPDFLoader, ".txt": TextLoader}
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        for index, uploaded_file in enumerate(uploaded_files):
+            extension = os.path.splitext(uploaded_file.name)[1].lower()
+            if extension not in loaders:
+                raise ValueError(f"Unsupported document format: {extension}")
+
+            # Generated names avoid collisions and keep uploads inside temp_dir.
+            temp_file_path = os.path.join(temp_dir, f"upload_{index}{extension}")
+            with open(temp_file_path, "wb") as temp_file:
+                temp_file.write(uploaded_file.getvalue())
+
+            loader_class = loaders[extension]
+            if extension == ".txt":
+                loader = loader_class(temp_file_path, encoding="utf-8")
+            else:
+                loader = loader_class(temp_file_path)
+            documents.extend(loader.load())
 
     character_splitter = CharacterTextSplitter(
         chunk_size=256, chunk_overlap=32
     )
     return character_splitter.split_documents(documents)
-
 
 def clean_chain():
     st.session_state.chain = None
@@ -270,6 +264,7 @@ def main():
     else:
         api_key = st.sidebar.text_input(
             f"Enter {model} API key",
+            type="password",
         )
         model_host = "openai" if model.startswith("openai") else "huggingface"
         if is_api_key_valid(model_host, api_key):
@@ -283,7 +278,7 @@ def main():
 
     uploaded_files = st.file_uploader(
         "You can upload any number of documents you want to chat with",
-        type=(["pdf", "tsv", "csv", "txt", "tab", "xlsx", "xls"]),
+        type=["pdf", "txt"],
         accept_multiple_files=True,
         on_change=clean_chain,
     )
