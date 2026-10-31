@@ -1,9 +1,9 @@
 import os
 import tempfile
 import time
+import uuid
 from collections import OrderedDict
 
-import openai
 import streamlit as st
 from langchain import HuggingFaceHub
 from langchain.chains import ConversationalRetrievalChain
@@ -51,15 +51,12 @@ def is_api_key_valid(model_host: str, api_key: str) -> bool:
         )
         return False
     else:
-        if model_host == "openai":
-            os.environ["OPENAI_API_KEY"] = api_key
-            openai.api_key = api_key
-        else:
-            os.environ["HUGGINGFACEHUB_API_TOKEN"] = api_key
-        return True
+        return model_host in {"openai", "huggingface"}
 
 
-def create_vector_store_retriever(model_host, chunked_documents) -> Chroma:
+def create_vector_store_retriever(
+    model_host, chunked_documents, api_key
+) -> Chroma:
     """
     Create a vector store retriever for the given model host and chunked documents.
 
@@ -76,15 +73,19 @@ def create_vector_store_retriever(model_host, chunked_documents) -> Chroma:
                                 using vector embeddings.
     """
     embeddings = (
-        OpenAIEmbeddings()
+        OpenAIEmbeddings(openai_api_key=api_key)
         if model_host == "openai"
-        else HuggingFaceHubEmbeddings()
+        else HuggingFaceHubEmbeddings(huggingfacehub_api_token=api_key)
     )
-    vector_store = Chroma.from_documents(chunked_documents, embeddings)
+    vector_store = Chroma.from_documents(
+        chunked_documents,
+        embeddings,
+        collection_name=f"delta-{uuid.uuid4().hex}",
+    )
     return vector_store.as_retriever(search_kwargs={"k": 5})
 
 
-def create_llm(model) -> ChatOpenAI | HuggingFaceHub:
+def create_llm(model, api_key) -> ChatOpenAI | HuggingFaceHub:
     """
     Create a language model (LLM) for chat-based applications based on the specified model.
 
@@ -97,11 +98,13 @@ def create_llm(model) -> ChatOpenAI | HuggingFaceHub:
     return (
         ChatOpenAI(
             model_name=model.split("/")[1],
+            openai_api_key=api_key,
             temperature=0,
         )
         if model.startswith("openai")
         else HuggingFaceHub(
             repo_id=model,
+            huggingfacehub_api_token=api_key,
             model_kwargs={
                 "temperature": 0.1,
                 "max_length": 4096,
@@ -183,7 +186,9 @@ def prepare_documents(uploaded_files):
                 raise ValueError(f"Unsupported document format: {extension}")
 
             # Generated names avoid collisions and keep uploads inside temp_dir.
-            temp_file_path = os.path.join(temp_dir, f"upload_{index}{extension}")
+            temp_file_path = os.path.join(
+                temp_dir, f"upload_{index}{extension}"
+            )
             with open(temp_file_path, "wb") as temp_file:
                 temp_file.write(uploaded_file.getvalue())
 
@@ -199,8 +204,10 @@ def prepare_documents(uploaded_files):
     )
     return character_splitter.split_documents(documents)
 
+
 def clean_chain():
     st.session_state.chain = None
+    st.session_state.messages = OrderedDict()
     return
 
 
@@ -253,6 +260,7 @@ def main():
             "tiiuae/falcon-40b",
             "bigscience/bloom",
         ],
+        on_change=clean_chain,
     )
     if model == "<Select>":
         st.sidebar.warning("Choose a model")
@@ -265,6 +273,7 @@ def main():
         api_key = st.sidebar.text_input(
             f"Enter {model} API key",
             type="password",
+            on_change=clean_chain,
         )
         model_host = "openai" if model.startswith("openai") else "huggingface"
         if is_api_key_valid(model_host, api_key):
@@ -290,11 +299,11 @@ def main():
             chunked_documents = prepare_documents(uploaded_files)
             # chunked_documents = load_multiple_documents_and_split(temp_files)
             retriever = create_vector_store_retriever(
-                model_host, chunked_documents
+                model_host, chunked_documents, api_key
             )
 
         with st.spinner("ChatBot is being prepared"):
-            llm = create_llm(model)
+            llm = create_llm(model, api_key)
             prompt_template = create_main_prompt()
             st.session_state.chain = create_retrieval_qa(
                 llm, prompt_template, retriever
