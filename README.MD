@@ -28,12 +28,12 @@ Embedding and language-model calls use the selected external provider. The origi
 
 ## Project map
 
-| Path | Purpose |
-| --- | --- |
-| [`delta-chatbot/app.py`](delta-chatbot/app.py) | Upload processing, retrieval, model selection, and chat UI |
-| [`delta-chatbot/modules/utils.py`](delta-chatbot/modules/utils.py) | Page configuration and shared styling |
-| [`static/`](static/) | Background images and CSS |
-| [`pyproject.toml`](pyproject.toml) | Original dependency constraints |
+| Path                                                               | Purpose                                                    |
+| ------------------------------------------------------------------ | ---------------------------------------------------------- |
+| [`delta-chatbot/app.py`](delta-chatbot/app.py)                     | Upload processing, retrieval, model selection, and chat UI |
+| [`delta-chatbot/modules/utils.py`](delta-chatbot/modules/utils.py) | Page configuration and shared styling                      |
+| [`static/`](static/)                                               | Background images and CSS                                  |
+| [`pyproject.toml`](pyproject.toml)                                 | Original dependency constraints                            |
 
 ## Development
 
@@ -42,3 +42,12 @@ Keep credentials outside version control. When changing the upload pipeline, che
 ## License
 
 [GNU General Public License v3.0](LICENSE).
+
+## Session isolation and regression checks
+
+API keys are passed to each provider client rather than written into process-wide
+environment variables. Each uploaded document set gets a separate Chroma
+collection. Changing the model, key, or uploaded files clears the conversation.
+Run `poetry run python -m unittest discover -s tests -v` for offline checks with
+fake provider clients. Live provider and document-parser compatibility still
+requires the configured runtime and credentials.
