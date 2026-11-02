@@ -41,7 +41,7 @@ Keep credentials outside version control. When changing the upload pipeline, che
 
 ## License
 
-[GNU General Public License v3.0](LICENSE).
+[MIT](LICENSE).
 
 ## Session isolation and regression checks
 
