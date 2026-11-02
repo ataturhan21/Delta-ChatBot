@@ -3,7 +3,7 @@ name = "delta-chatbot"
 version = "0.1.0"
 description = "a chatbot to chat with documents"
 authors = ["olympian21 <ataturhan21@gmail.com>"]
-license = "GPLv3"
+license = "MIT"
 readme = "README.MD"
 packages = [{include = "delta_chatbot"}]
 
