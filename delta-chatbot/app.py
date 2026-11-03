@@ -330,18 +330,12 @@ def main():
 
         with st.chat_message("assistant", avatar="🤖"):
             st.markdown(assistant_message)
-            # sound_file = BytesIO()
-            # tts = gTTS(assistant_message, lang="tr")
-            # tts.write_to_fp(sound_file)
-            # st.audio(sound_file)
 
     text_input = st.chat_input(
         placeholder="Chat by typing ✍️",
         key="text_box",
         max_chars=100,
     )
-    # voice_input = speech2text()
-    # user_input = voice_input or text_input
     user_input = text_input
 
     try:
@@ -367,10 +361,6 @@ def main():
                         format_source_documents(result["source_documents"]),
                         unsafe_allow_html=True,
                     )
-                    # sound_file = BytesIO()
-                    # tts = gTTS(llm_output, lang="tr")
-                    # tts.write_to_fp(sound_file)
-                    # st.audio(sound_file)
 
             if user_input not in st.session_state.messages:
                 assistant_message = llm_output
