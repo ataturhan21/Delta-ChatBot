@@ -1,3 +1,4 @@
+import html
 import os
 import tempfile
 import time
@@ -202,7 +203,18 @@ def prepare_documents(uploaded_files):
     character_splitter = CharacterTextSplitter(
         chunk_size=256, chunk_overlap=32
     )
-    return character_splitter.split_documents(documents)
+    chunked_documents = character_splitter.split_documents(documents)
+    if not chunked_documents:
+        raise ValueError("No text could be extracted from the uploaded files.")
+    return chunked_documents
+
+
+def format_source_documents(source_documents) -> str:
+    """Number retrieved passages, showing their text literally."""
+    return "".join(
+        f"{idx + 1} - {html.escape(source.page_content)}<hr>"
+        for idx, source in enumerate(source_documents)
+    )
 
 
 def clean_chain():
@@ -296,8 +308,11 @@ def main():
 
     if not st.session_state.chain:
         with st.spinner("Documents are being processed"):
-            chunked_documents = prepare_documents(uploaded_files)
-            # chunked_documents = load_multiple_documents_and_split(temp_files)
+            try:
+                chunked_documents = prepare_documents(uploaded_files)
+            except Exception as error:
+                st.error(f"The documents could not be processed: {error}")
+                return
             retriever = create_vector_store_retriever(
                 model_host, chunked_documents, api_key
             )
@@ -348,13 +363,10 @@ def main():
                     time.sleep(STREAMING_INTERVAL)
                 message_placeholder.write(llm_output)
                 with st.expander(label="Click to see the source documents"):
-                    sources = "".join(
-                        f"{str(idx + 1)} - {source.page_content}<hr>"
-                        for idx, source in enumerate(
-                            result["source_documents"]
-                        )
+                    st.markdown(
+                        format_source_documents(result["source_documents"]),
+                        unsafe_allow_html=True,
                     )
-                    st.markdown(sources, unsafe_allow_html=True)
                     # sound_file = BytesIO()
                     # tts = gTTS(llm_output, lang="tr")
                     # tts.write_to_fp(sound_file)
