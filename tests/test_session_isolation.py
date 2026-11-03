@@ -35,7 +35,7 @@ class SessionIsolationTests(unittest.TestCase):
         }
         definitions = [
             node
-            for node in ast.parse(source.read_text()).body
+            for node in ast.parse(source.read_text(encoding="utf-8")).body
             if isinstance(node, ast.FunctionDef) and node.name in names
         ]
         self.state = types.SimpleNamespace(
