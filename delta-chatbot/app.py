@@ -68,6 +68,7 @@ def create_vector_store_retriever(
         chunked_documents (list): A list of text chunks obtained from documents. Each
                                   chunk should be a string representation of a document's
                                   part.
+        api_key (str): The provider credential passed to the embeddings client.
 
     Returns:
         vector_store.retriever: A retriever object capable of performing document retrieval
@@ -92,6 +93,7 @@ def create_llm(model, api_key) -> ChatOpenAI | HuggingFaceHub:
 
     Parameters:
         model (str): The model name or repository ID of the language model to be used.
+        api_key (str): The provider credential passed to the language-model client.
 
     Returns:
         Union[ChatOpenAI, HuggingFaceHub]: A language model instance suitable for chat-based applications.
@@ -116,7 +118,7 @@ def create_llm(model, api_key) -> ChatOpenAI | HuggingFaceHub:
 
 def create_main_prompt() -> str:
     """
-    Create the main prompt for the chatbot to respond to user queries about TOBB ETÜ (TOBB University).
+    Create the main prompt for the chatbot to answer questions about the uploaded documents.
 
     Returns:
         str: The main prompt template for the chatbot.
