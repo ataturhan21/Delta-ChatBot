@@ -24,7 +24,7 @@ Run from the repository root so that `static/` assets resolve. On Windows, [`sta
 
 Each upload is written to an isolated temporary directory while it is parsed, then the temporary files are removed. Text is split into chunks of 256 characters with an overlap of 32 before retrieval.
 
-Embedding and language-model calls use the selected external provider. The original model list and API integrations are preserved; provider access and compatibility need verification before deployment. The application uses process-level provider settings and is intended for a local, single-user session.
+Embedding and language-model calls use the selected external provider. The original model list and API integrations are preserved; provider access and compatibility need verification before deployment. Each provider client receives the key entered in the sidebar; keys are not written to environment variables (see [Session isolation](#session-isolation-and-regression-checks)). The application is intended for a local, single-user session.
 
 ## Project map
 
