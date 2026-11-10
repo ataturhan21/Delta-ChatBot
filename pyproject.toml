@@ -13,7 +13,7 @@ streamlit = "1.24.0"
 langchain = "^0.0.239"
 openai = "^0.27.8"
 chromadb = "^0.4.2"
-pypdf = "^3.12.2"
+pypdf = ">=3.12.2"
 unstructured = "^0.8.1"
 tiktoken = "^0.4.0"
 
