@@ -39,9 +39,9 @@ Embedding and language-model calls use the selected external provider. The origi
 
 Keep credentials outside version control. When changing the upload pipeline, check valid PDFs and text files, unsupported extensions, duplicate upload names, and temporary-file cleanup. A live model response also depends on provider credentials and service availability.
 
-## License
+## Copyright
 
-[MIT](LICENSE).
+© Ata Turhan. All rights reserved. This repository has no open-source license: its code may not be copied, modified or redistributed.
 
 ## Session isolation and regression checks
 
